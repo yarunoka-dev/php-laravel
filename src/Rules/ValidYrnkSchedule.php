@@ -9,24 +9,24 @@ use Yarunoka\Exceptions\ExceptionInterface;
 use Yarunoka\Laravel\Internal\ScheduleCodec;
 
 /**
- * The validation rule of a schedules part. Tries the construction with
+ * The validation rule of one schedule. Tries the construction with
  * ScheduleCodec (structure + references against the config environment)
  * and puts the engine's message on the validation error as it is. Not a
  * second system beside the JSON Schema — the implementation is the
  * authority.
  */
-class ValidYrnkSchedules implements ValidationRule
+class ValidYrnkSchedule implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! is_array($value) && ! is_string($value)) {
-            $fail('A schedules part must be a list or a JSON string');
+            $fail('A schedule must be an object or a JSON string');
 
             return;
         }
 
         try {
-            Container::getInstance()->make(ScheduleCodec::class)->decodeSchedules($value);
+            Container::getInstance()->make(ScheduleCodec::class)->decodeSchedule($value);
         } catch (ExceptionInterface $e) {
             $fail($e->getMessage());
         }

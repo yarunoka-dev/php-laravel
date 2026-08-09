@@ -13,9 +13,28 @@ sidebar:
 
 `final readonly class Schedule implements Illuminate\Contracts\Support\Arrayable, Illuminate\Contracts\Database\Eloquent\Castable`
 
-The wrapper the cast answers a schedules-part column with. The core's YrnkSchedule is one OR branch and the judgment API is per branch, so the any-composition a column (a whole schedules part — a list of branches) needs is closed inside this class. The firing vocabulary the core deliberately lacks (isDue) lives here — convenience is the bridge's business.
+The wrapper the cast answers a schedule column with — one schedule of the DSL. The core's YrnkSchedule stays exposed as a property, so everything php-core can do with a schedule stays reachable. The firing vocabulary the core deliberately lacks (isDue) lives here — convenience is the bridge's business.
 
 readonly, so a change is a reassignment (`$routine->schedule = $new`).
+
+#### Properties
+
+- `YrnkSchedule $yrnkSchedule`
+
+#### Methods
+
+- `__construct(YrnkSchedule $yrnkSchedule)`
+- `isDue(DateTimeInterface $at, DateTimeInterface $since): bool` — Is there a scheduled point in the half-open interval (since, at] — the firing decision, the engine's hasMatchIn as it is.
+- `toArray(): array` — The raw form of the DSL (RawSchedule) — the model's toArray / toJson show the stored spelling as it is.
+- `castUsing(array $arguments): string` — The Castable form: casts() takes this wrapper's class name alone.
+
+### Schedules
+
+`final readonly class Schedules implements Illuminate\Contracts\Support\Arrayable, Illuminate\Contracts\Database\Eloquent\Castable`
+
+The wrapper the cast answers a schedules-part column with — a list of Schedule whose firing decision composes with any. The elements are the bridge's Schedule, not bare YrnkSchedule, so each of them carries the same vocabulary alone as it does in the list.
+
+readonly, so a change is a reassignment (`$routine->schedules = $new`).
 
 #### Properties
 
@@ -24,7 +43,7 @@ readonly, so a change is a reassignment (`$routine->schedule = $new`).
 #### Methods
 
 - `__construct(array $schedules)`
-- `isDue(DateTimeInterface $at, DateTimeInterface $since): bool` — Is there a scheduled point of any branch in the half-open interval (since, at] — the firing decision. Asks YrnkEvaluator's hasMatchIn per branch and composes with any.
+- `isDue(DateTimeInterface $at, DateTimeInterface $since): bool` — Is there a scheduled point of any schedule in the half-open interval (since, at] — the firing decision, composed with any.
 - `toArray(): array` — The raw form of the DSL (list<RawSchedule>) — the model's toArray / toJson show the stored spelling as it is.
 - `castUsing(array $arguments): string` — The Castable form: casts() takes this wrapper's class name alone.
 
@@ -55,15 +74,27 @@ The Eloquent cast of a whole-document column (the JSON of a Yrnk document), for 
 - `set(Model $model, string $key, mixed $value, array $attributes): ?string`
 - `compare(Model $model, string $key, mixed $firstValue, mixed $secondValue): bool` — JSON varies in key order and whitespace as a string, so the decoded arrays are compared to avoid a false dirty (a pointless UPDATE).
 
-### AsYrnkSchedules
+### AsYrnkSchedule
 
-`final class AsYrnkSchedules implements Illuminate\Contracts\Database\Eloquent\CastsAttributes, Illuminate\Contracts\Database\Eloquent\ComparesCastableAttributes`
+`final class AsYrnkSchedule implements Illuminate\Contracts\Database\Eloquent\CastsAttributes, Illuminate\Contracts\Database\Eloquent\ComparesCastableAttributes`
 
-The Eloquent cast of a schedules-part column (the JSON of a list<RawSchedule>). The consumer writes Schedule::class (Castable) in casts() and this class is an implementation detail. ScheduleCodec is pulled from the container per call because a cast is constructed with a bare `new` where DI cannot reach (this also keeps the scope fresh).
+The Eloquent cast of a schedule column (the JSON of one RawSchedule). The consumer writes Schedule::class (Castable) in casts() and this class is an implementation detail. ScheduleCodec is pulled from the container per call because a cast is constructed with a bare `new` where DI cannot reach (this also keeps the scope fresh).
 
 #### Methods
 
 - `get(Model $model, string $key, mixed $value, array $attributes): ?Schedule`
+- `set(Model $model, string $key, mixed $value, array $attributes): ?string`
+- `compare(Model $model, string $key, mixed $firstValue, mixed $secondValue): bool` — JSON varies in key order and whitespace as a string, so the decoded arrays are compared to avoid a false dirty (a pointless UPDATE).
+
+### AsYrnkSchedules
+
+`final class AsYrnkSchedules implements Illuminate\Contracts\Database\Eloquent\CastsAttributes, Illuminate\Contracts\Database\Eloquent\ComparesCastableAttributes`
+
+The Eloquent cast of a schedules-part column (the JSON of a list<RawSchedule>). The consumer writes Schedules::class (Castable) in casts() and this class is an implementation detail. ScheduleCodec is pulled from the container per call because a cast is constructed with a bare `new` where DI cannot reach (this also keeps the scope fresh).
+
+#### Methods
+
+- `get(Model $model, string $key, mixed $value, array $attributes): ?Schedules`
 - `set(Model $model, string $key, mixed $value, array $attributes): ?string`
 - `compare(Model $model, string $key, mixed $firstValue, mixed $secondValue): bool` — JSON varies in key order and whitespace as a string, so the decoded arrays are compared to avoid a false dirty (a pointless UPDATE).
 
@@ -82,6 +113,16 @@ The data a column held cannot be read as Yrnk. The cast's get runs in the middle
 `class ValidYrnk implements Illuminate\Contracts\Validation\ValidationRule`
 
 The validation rule of a whole document (a Yrnk document). Tries the construction with YrnkParser (carrying the config's resolvers) and puts the engine's message on the validation error as it is.
+
+#### Methods
+
+- `validate(string $attribute, mixed $value, Closure $fail): void`
+
+### ValidYrnkSchedule
+
+`class ValidYrnkSchedule implements Illuminate\Contracts\Validation\ValidationRule`
+
+The validation rule of one schedule. Tries the construction with ScheduleCodec (structure + references against the config environment) and puts the engine's message on the validation error as it is. Not a second system beside the JSON Schema — the implementation is the authority.
 
 #### Methods
 

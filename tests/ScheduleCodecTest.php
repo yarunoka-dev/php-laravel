@@ -29,12 +29,114 @@ class ScheduleCodecTest extends TestCase
         return app()->make(ScheduleCodec::class);
     }
 
-    // ---- decode ----
+    // ---- decodeSchedule (one schedule) ----
 
     #[Test]
-    public function decode_turns_a_json_string_into_a_list_of_yrnk_schedules(): void
+    public function decode_schedule_turns_a_json_object_into_one_yrnk_schedule(): void
     {
-        $schedules = $this->codec()->decode('[{"days": [25], "times": ["10:00"]}]');
+        $schedule = $this->codec()->decodeSchedule('{"days": [25], "times": ["10:00"]}');
+
+        $this->assertInstanceOf(YrnkSchedule::class, $schedule);
+        $this->assertInstanceOf(FixedTimes::class, $schedule->times);
+    }
+
+    #[Test]
+    public function decode_schedule_accepts_an_array_too(): void
+    {
+        $schedule = $this->codec()->decodeSchedule(['days' => [25], 'times' => ['10:00']]);
+
+        $this->assertInstanceOf(YrnkSchedule::class, $schedule);
+    }
+
+    #[Test]
+    public function decode_schedule_rejects_a_list_pointing_to_a_schedules_column(): void
+    {
+        $this->expectException(InvalidYrnkException::class);
+        $this->expectExceptionMessageMatches('/schedules column/');
+
+        $this->codec()->decodeSchedule([['days' => [25], 'times' => ['10:00']]]);
+    }
+
+    #[Test]
+    public function decode_schedule_rejects_broken_json(): void
+    {
+        $this->expectException(InvalidYrnkException::class);
+
+        $this->codec()->decodeSchedule('{broken');
+    }
+
+    #[Test]
+    public function decode_schedule_rejects_a_structure_violation(): void
+    {
+        $this->expectException(InvalidYrnkException::class);
+
+        $this->codec()->decodeSchedule(['days' => [25]]); // neither times nor allday
+    }
+
+    #[Test]
+    #[DefineEnvironment('withCompanyCalendar')]
+    public function decode_schedule_validates_references_against_the_config_environment(): void
+    {
+        $schedule = $this->codec()->decodeSchedule(['days' => ['founding-day'], 'allday' => true]);
+
+        $this->assertInstanceOf(YrnkSchedule::class, $schedule);
+    }
+
+    #[Test]
+    #[DefineEnvironment('withCompanyCalendar')]
+    public function decode_schedule_rejects_a_reference_to_an_undefined_name(): void
+    {
+        $this->expectException(UndefinedNameException::class);
+
+        $this->codec()->decodeSchedule(['days' => ['nowhere-day'], 'allday' => true]);
+    }
+
+    // ---- encodeSchedule (one schedule) ----
+
+    #[Test]
+    public function encode_schedule_validates_an_array_into_a_json_string(): void
+    {
+        $raw = ['days' => [25], 'times' => ['10:00']];
+
+        $this->assertSame($raw, json_decode($this->codec()->encodeSchedule($raw), associative: true));
+    }
+
+    #[Test]
+    public function encode_schedule_accepts_a_json_string_with_validation(): void
+    {
+        $json = '{"days":[25],"times":["10:00"]}';
+
+        $this->assertSame(
+            ['days' => [25], 'times' => ['10:00']],
+            json_decode($this->codec()->encodeSchedule($json), associative: true),
+        );
+    }
+
+    #[Test]
+    public function encode_schedule_accepts_a_yrnk_schedule_instance_too(): void
+    {
+        $schedule = new YrnkScheduleParser()->parse(['days' => [25], 'times' => ['10:00']], new DateTimeZone('UTC'));
+
+        $this->assertSame(
+            ['days' => [25], 'times' => ['10:00']],
+            json_decode($this->codec()->encodeSchedule($schedule), associative: true),
+        );
+    }
+
+    #[Test]
+    public function encode_schedule_stops_an_invalid_schedule_on_an_exception_before_the_database(): void
+    {
+        $this->expectException(InvalidYrnkException::class);
+
+        $this->codec()->encodeSchedule(['days' => [32], 'times' => ['10:00']]);
+    }
+
+    // ---- decodeSchedules (a schedules part) ----
+
+    #[Test]
+    public function decode_schedules_turns_a_json_string_into_a_list_of_yrnk_schedules(): void
+    {
+        $schedules = $this->codec()->decodeSchedules('[{"days": [25], "times": ["10:00"]}]');
 
         $this->assertCount(1, $schedules);
         $this->assertInstanceOf(YrnkSchedule::class, $schedules[0]);
@@ -42,50 +144,50 @@ class ScheduleCodecTest extends TestCase
     }
 
     #[Test]
-    public function decode_accepts_an_array_too(): void
+    public function decode_schedules_accepts_an_array_too(): void
     {
-        $schedules = $this->codec()->decode([['days' => [25], 'times' => ['10:00']]]);
+        $schedules = $this->codec()->decodeSchedules([['days' => [25], 'times' => ['10:00']]]);
 
         $this->assertCount(1, $schedules);
     }
 
     #[Test]
-    public function decode_rejects_a_bare_object_saying_wrap_it_in_a_list(): void
+    public function decode_schedules_rejects_a_bare_object_saying_wrap_it_in_a_list(): void
     {
         $this->expectException(InvalidYrnkException::class);
 
-        $this->codec()->decode(['days' => [25], 'times' => ['10:00']]);
+        $this->codec()->decodeSchedules(['days' => [25], 'times' => ['10:00']]);
     }
 
     #[Test]
-    public function decode_rejects_an_empty_list(): void
+    public function decode_schedules_rejects_an_empty_list(): void
     {
         $this->expectException(InvalidYrnkException::class);
 
-        $this->codec()->decode([]);
+        $this->codec()->decodeSchedules([]);
     }
 
     #[Test]
-    public function decode_rejects_broken_json(): void
+    public function decode_schedules_rejects_broken_json(): void
     {
         $this->expectException(InvalidYrnkException::class);
 
-        $this->codec()->decode('{broken');
+        $this->codec()->decodeSchedules('{broken');
     }
 
     #[Test]
-    public function decode_rejects_a_structure_violation(): void
+    public function decode_schedules_rejects_a_structure_violation(): void
     {
         $this->expectException(InvalidYrnkException::class);
 
-        $this->codec()->decode([['days' => [25]]]); // neither times nor allday
+        $this->codec()->decodeSchedules([['days' => [25]]]); // neither times nor allday
     }
 
     #[Test]
     #[DefineEnvironment('withCompanyCalendar')]
-    public function decode_validates_references_against_the_config_environment(): void
+    public function decode_schedules_validates_references_against_the_config_environment(): void
     {
-        $schedules = $this->codec()->decode([
+        $schedules = $this->codec()->decodeSchedules([
             ['days' => ['holiday'], 'allday' => true],
             ['days' => ['founding-day'], 'allday' => true],
         ]);
@@ -95,68 +197,68 @@ class ScheduleCodecTest extends TestCase
 
     #[Test]
     #[DefineEnvironment('withCompanyCalendar')]
-    public function decode_rejects_a_reference_to_an_undefined_name(): void
+    public function decode_schedules_rejects_a_reference_to_an_undefined_name(): void
     {
         $this->expectException(UndefinedNameException::class);
 
-        $this->codec()->decode([['days' => ['nowhere-day'], 'allday' => true]]);
+        $this->codec()->decodeSchedules([['days' => ['nowhere-day'], 'allday' => true]]);
     }
 
     #[Test]
-    public function decode_rejects_layer_vocabulary_with_the_layer_undefined(): void
+    public function decode_schedules_rejects_layer_vocabulary_with_the_layer_undefined(): void
     {
         $this->expectException(MissingCalendarDataException::class);
 
-        $this->codec()->decode([['days' => ['holiday'], 'allday' => true]]);
+        $this->codec()->decodeSchedules([['days' => ['holiday'], 'allday' => true]]);
     }
 
-    // ---- encode ----
+    // ---- encodeSchedules (a schedules part) ----
 
     #[Test]
-    public function encode_validates_an_array_into_a_json_string(): void
+    public function encode_schedules_validates_an_array_into_a_json_string(): void
     {
         $raw = [['days' => [25], 'times' => ['10:00']]];
 
-        $this->assertSame($raw, json_decode($this->codec()->encode($raw), associative: true));
+        $this->assertSame($raw, json_decode($this->codec()->encodeSchedules($raw), associative: true));
     }
 
     #[Test]
-    public function encode_accepts_a_json_string_with_validation(): void
+    public function encode_schedules_accepts_a_json_string_with_validation(): void
     {
         $json = '[{"days":[25],"times":["10:00"]}]';
 
         $this->assertSame(
             [['days' => [25], 'times' => ['10:00']]],
-            json_decode($this->codec()->encode($json), associative: true),
+            json_decode($this->codec()->encodeSchedules($json), associative: true),
         );
     }
 
     #[Test]
-    public function encode_accepts_a_list_of_yrnk_schedule_instances_too(): void
+    public function encode_schedules_accepts_a_list_of_yrnk_schedule_instances_too(): void
     {
         $schedules = [new YrnkScheduleParser()->parse(['days' => [25], 'times' => ['10:00']], new DateTimeZone('UTC'))];
 
         $this->assertSame(
             [['days' => [25], 'times' => ['10:00']]],
-            json_decode($this->codec()->encode($schedules), associative: true),
+            json_decode($this->codec()->encodeSchedules($schedules), associative: true),
         );
     }
 
     #[Test]
-    public function encode_stops_an_invalid_schedule_on_an_exception_before_the_database(): void
+    public function encode_schedules_stops_an_invalid_schedule_on_an_exception_before_the_database(): void
     {
         $this->expectException(InvalidYrnkException::class);
 
-        $this->codec()->encode([['days' => [32], 'times' => ['10:00']]]);
+        $this->codec()->encodeSchedules([['days' => [32], 'times' => ['10:00']]]);
     }
 
     #[Test]
     #[DefineEnvironment('withCompanyCalendar')]
-    public function encode_validates_references_too(): void
+    public function encode_schedules_validates_references_too(): void
     {
         $this->expectException(UndefinedNameException::class);
 
-        $this->codec()->encode([['days' => ['nowhere-day'], 'allday' => true]]);
+        $this->codec()->encodeSchedules([['days' => ['nowhere-day'], 'allday' => true]]);
     }
 
     #[Test]
@@ -167,8 +269,8 @@ class ScheduleCodecTest extends TestCase
             ['months' => [7], 'days' => ['last_day_of_month'], 'allday' => true],
         ];
 
-        $decoded = $this->codec()->decode($this->codec()->encode($raw));
+        $decoded = $this->codec()->decodeSchedules($this->codec()->encodeSchedules($raw));
 
-        $this->assertSame($raw, json_decode($this->codec()->encode($decoded), associative: true));
+        $this->assertSame($raw, json_decode($this->codec()->encodeSchedules($decoded), associative: true));
     }
 }

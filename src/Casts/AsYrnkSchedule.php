@@ -11,24 +11,23 @@ use Yarunoka\Exceptions\InvalidYrnkException;
 use Yarunoka\Laravel\Exceptions\InvalidYrnkColumnException;
 use Yarunoka\Laravel\Internal\ScheduleCodec;
 use Yarunoka\Laravel\Schedule;
-use Yarunoka\Laravel\Schedules;
 use Yarunoka\YrnkSchedule;
 
 /**
- * The Eloquent cast of a schedules-part column (the JSON of a
- * list<RawSchedule>). The consumer writes Schedules::class (Castable) in
- * casts() and this class is an implementation detail. ScheduleCodec is
- * pulled from the container per call because a cast is constructed with
- * a bare `new` where DI cannot reach (this also keeps the scope fresh).
+ * The Eloquent cast of a schedule column (the JSON of one RawSchedule).
+ * The consumer writes Schedule::class (Castable) in casts() and this
+ * class is an implementation detail. ScheduleCodec is pulled from the
+ * container per call because a cast is constructed with a bare `new`
+ * where DI cannot reach (this also keeps the scope fresh).
  *
- * @implements CastsAttributes<Schedules|null, Schedules|array<mixed>|string|null>
+ * @implements CastsAttributes<Schedule|null, Schedule|YrnkSchedule|array<mixed>|string|null>
  */
-final class AsYrnkSchedules implements CastsAttributes, ComparesCastableAttributes
+final class AsYrnkSchedule implements CastsAttributes, ComparesCastableAttributes
 {
     /**
      * @param  array<string, mixed>  $attributes
      */
-    public function get(Model $model, string $key, mixed $value, array $attributes): ?Schedules
+    public function get(Model $model, string $key, mixed $value, array $attributes): ?Schedule
     {
         if ($value === null) {
             return null;
@@ -39,13 +38,10 @@ final class AsYrnkSchedules implements CastsAttributes, ComparesCastableAttribut
                 throw new InvalidYrnkException('The column value is not a JSON string: ' . get_debug_type($value));
             }
 
-            return new Schedules(array_map(
-                static fn(YrnkSchedule $schedule): Schedule => new Schedule($schedule),
-                Container::getInstance()->make(ScheduleCodec::class)->decodeSchedules($value),
-            ));
+            return new Schedule(Container::getInstance()->make(ScheduleCodec::class)->decodeSchedule($value));
         } catch (ExceptionInterface $e) {
             throw new InvalidYrnkColumnException(
-                sprintf('The %s column of %s does not hold a readable schedules part: %s', $key, $model::class, $e->getMessage()),
+                sprintf('The %s column of %s does not hold a readable schedule: %s', $key, $model::class, $e->getMessage()),
                 previous: $e,
             );
         }
@@ -60,27 +56,20 @@ final class AsYrnkSchedules implements CastsAttributes, ComparesCastableAttribut
             return null;
         }
 
-        if ($value instanceof Schedules) {
-            $value = $value->schedules;
+        if ($value instanceof Schedule) {
+            $value = $value->yrnkSchedule;
         }
 
         // TSet's phpdoc is the consumer-facing type; Eloquent hands over
         // mixed at runtime
         // @phpstan-ignore booleanAnd.alwaysFalse, function.alreadyNarrowedType
-        if (! is_array($value) && ! is_string($value)) {
+        if (! $value instanceof YrnkSchedule && ! is_array($value) && ! is_string($value)) {
             throw new InvalidYrnkException(
-                'A schedules-part column takes the wrapper, a list of Schedule or YrnkSchedule, an array, or a JSON string: ' . get_debug_type($value),
+                'A schedule column takes the wrapper, a YrnkSchedule, an array, or a JSON string: ' . get_debug_type($value),
             );
         }
 
-        if (is_array($value)) {
-            $value = array_map(
-                static fn(mixed $schedule): mixed => $schedule instanceof Schedule ? $schedule->yrnkSchedule : $schedule,
-                $value,
-            );
-        }
-
-        return Container::getInstance()->make(ScheduleCodec::class)->encodeSchedules($value);
+        return Container::getInstance()->make(ScheduleCodec::class)->encodeSchedule($value);
     }
 
     /**
