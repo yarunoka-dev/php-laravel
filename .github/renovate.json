@@ -1,0 +1,28 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": ["config:recommended"],
+    "minimumReleaseAge": "7 days",
+    "packageRules": [
+        {
+            "matchManagers": ["composer"],
+            "matchFileNames": ["composer.json"],
+            "matchDepTypes": ["require"],
+            "rangeStrategy": "widen",
+            "addLabels": ["dependencies"]
+        },
+        {
+            "matchManagers": ["composer"],
+            "matchDepTypes": ["require-dev"],
+            "addLabels": ["internal"]
+        },
+        {
+            "matchManagers": ["composer"],
+            "matchFileNames": ["vendor-bin/**"],
+            "addLabels": ["internal"]
+        },
+        {
+            "matchManagers": ["github-actions"],
+            "addLabels": ["internal"]
+        }
+    ]
+}
