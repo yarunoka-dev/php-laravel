@@ -194,14 +194,14 @@ class ScheduleCastTest extends TestCase
 
     #[Test]
     #[DefineEnvironment('withTokyoAndHolidays')]
-    public function branches_landing_on_the_same_point_still_fire_as_one_or(): void
+    public function identical_branches_are_legal_in_a_column_and_fire_as_one_or(): void
     {
-        // 2026-07-25 is a Saturday, so both branches produce the same
-        // 10:00 point (spelled differently — a duplicate spelling would
-        // be rejected)
+        // A column is not a document: the document-level uniqueItems rule
+        // does not apply here, so identical branches stay legal (the OR
+        // makes them harmless)
         $routine = RoutineRecord::query()->create(['schedules' => [
             ['days' => [25], 'times' => ['10:00']],
-            ['days' => ['sat'], 'times' => ['10:00']],
+            ['days' => [25], 'times' => ['10:00']],
         ]]);
 
         $schedules = $this->reloadedSchedules($routine);

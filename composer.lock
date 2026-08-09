@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "145b97de476e6aa4ed4f4b255a1d3c58",
+    "content-hash": "6fa1107cd37d2d2e3096c00432bd86fe",
     "packages": [
         {
             "name": "brick/math",
@@ -5796,16 +5796,16 @@
         },
         {
             "name": "yarunoka/core",
-            "version": "1.1.0",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/yarunoka-dev/php-core.git",
-                "reference": "a82d6945dae66a7706302175d9ec9d6b4a1c6f7b"
+                "reference": "33235d03b7e626f3378e3551ed957cf63e41db70"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/yarunoka-dev/php-core/zipball/a82d6945dae66a7706302175d9ec9d6b4a1c6f7b",
-                "reference": "a82d6945dae66a7706302175d9ec9d6b4a1c6f7b",
+                "url": "https://api.github.com/repos/yarunoka-dev/php-core/zipball/33235d03b7e626f3378e3551ed957cf63e41db70",
+                "reference": "33235d03b7e626f3378e3551ed957cf63e41db70",
                 "shasum": ""
             },
             "require": {
@@ -5859,7 +5859,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-08-06T10:29:05+00:00"
+            "time": "2026-08-09T07:43:52+00:00"
         }
     ],
     "packages-dev": [

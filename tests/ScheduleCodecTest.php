@@ -82,17 +82,6 @@ class ScheduleCodecTest extends TestCase
     }
 
     #[Test]
-    public function decode_rejects_a_duplicate_schedule_like_a_document_does(): void
-    {
-        $this->expectException(InvalidYrnkException::class);
-
-        $this->codec()->decode([
-            ['days' => [25], 'times' => ['10:00']],
-            ['days' => [25], 'times' => ['10:00']],
-        ]);
-    }
-
-    #[Test]
     #[DefineEnvironment('withCompanyCalendar')]
     public function decode_validates_references_against_the_config_environment(): void
     {
