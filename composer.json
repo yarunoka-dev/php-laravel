@@ -42,7 +42,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Yarunoka\\Laravel\\Tests\\": "tests/"
+            "Yarunoka\\Laravel\\Tests\\": "tests/",
+            "Yarunoka\\Docgen\\": "tools/docgen/src/",
+            "Yarunoka\\Docgen\\Tests\\": "tools/docgen/tests/"
         }
     },
     "config": {
@@ -62,5 +64,9 @@
             ]
         }
     },
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "scripts": {
+        "docs:generate": "php tools/docgen/generate.php",
+        "docs:check": "php tools/docgen/generate.php --check"
+    }
 }
