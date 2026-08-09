@@ -1,0 +1,55 @@
+{
+    "name": "yarunoka/laravel",
+    "description": "Laravel integration for the Yarunoka schedule definition DSL",
+    "type": "library",
+    "keywords": [
+        "schedule",
+        "scheduling",
+        "dsl",
+        "calendar",
+        "laravel",
+        "eloquent",
+        "validation"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/yarunoka-dev/php-laravel",
+    "support": {
+        "issues": "https://github.com/yarunoka-dev/php-laravel/issues",
+        "source": "https://github.com/yarunoka-dev/php-laravel",
+        "docs": "https://yarunoka.dev/docs/"
+    },
+    "require": {
+        "php": "^8.4",
+        "illuminate/container": "^13.0",
+        "illuminate/contracts": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/support": "^13.0",
+        "yarunoka/core": "^1.2"
+    },
+    "require-dev": {
+        "azuyalabs/yasumi": "^2.11",
+        "orchestra/testbench": "^11.1",
+        "phpunit/phpunit": "^13.0"
+    },
+    "suggest": {
+        "azuyalabs/yasumi": "Answer the yasumi-{Provider} resolver names with computed public holidays"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yarunoka\\Laravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Yarunoka\\Laravel\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Yarunoka\\Laravel\\YarunokaServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable"
+}
