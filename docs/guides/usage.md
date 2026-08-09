@@ -27,9 +27,8 @@ app(YrnkParser::class)->parse($json);   // knows the config's resolver names
 
 ## Storing a schedule column
 
-A column holding a **schedules part** — a JSON list of schedules that
-share the application's calendar — is cast by naming the wrapper in
-`casts()`:
+A column holding **one schedule** — a JSON object judged in the
+application's calendar — is cast by naming the wrapper in `casts()`:
 
 ```php
 use Yarunoka\Laravel\Schedule;
@@ -43,35 +42,50 @@ class Routine extends Model
 }
 ```
 
-Writing accepts the spellings a schedules part arrives in — a PHP array,
-a JSON string, a list of `YrnkSchedule`, or the wrapper itself — and
-**validates on both paths**: structure, values, and that every name
-resolves in the configured environment. An invalid schedules part stops
-on an exception and never reaches the database; a broken column value
-surfaces on read as `InvalidYrnkColumnException`, naming the model and
-the column.
+Writing accepts the spellings a schedule arrives in — a PHP array, a
+JSON string, a `YrnkSchedule`, or the wrapper itself — and **validates
+on both paths**: structure, values, and that every name resolves in the
+configured environment. An invalid schedule stops on an exception and
+never reaches the database; a broken column value surfaces on read as
+`InvalidYrnkColumnException`, naming the model and the column.
 
 ```php
 $routine = Routine::create([
-    'schedule' => [
-        ['days' => [25], 'shift' => ['prev', 'or_same', 'business_day'], 'times' => ['10:00']],
-    ],
+    'schedule' => ['days' => [25], 'shift' => ['prev', 'or_same', 'business_day'], 'times' => ['10:00']],
 ]);
 ```
 
 Reading gives the wrapper back. It is readonly — a change is a
 reassignment of the whole attribute — and the model's `toArray()` /
-`toJson()` show the stored spelling of the DSL as it is.
+`toJson()` show the stored spelling of the DSL as it is. The core's
+`YrnkSchedule` stays exposed as `$routine->schedule->yrnkSchedule`, so
+everything the engine can do with a schedule stays reachable.
 
-The column is a list of OR branches, like a document's `schedules`. Two
-things differ from a document: the calendar and timezone come from the
-config rather than travelling with the data, and the document-level
-"no duplicate schedules" rule does not apply — identical branches are
-legal in a column and fire as one.
+## Storing a schedules column
+
+A column may instead hold a **schedules part** — a JSON list of
+schedules, like a document's `schedules` — by naming `Schedules`:
+
+```php
+use Yarunoka\Laravel\Schedules;
+
+protected function casts(): array
+{
+    return ['schedules' => Schedules::class];
+}
+```
+
+The wrapper holds a list of `Schedule` (each carrying its
+`YrnkSchedule`), and writing additionally accepts a list of `Schedule`
+or `YrnkSchedule`. Two things differ from a document: the calendar and
+timezone come from the config rather than travelling with the data, and
+the document-level "no duplicate schedules" rule does not apply —
+identical schedules are legal in a column and fire as one.
 
 ## Deciding when to fire
 
-The wrapper carries the firing decision, composed across its branches:
+Both wrappers carry the firing decision — `Schedules` composes its
+schedules with any:
 
 ```php
 if ($routine->schedule->isDue(now(), since: $routine->last_run_at)) {
@@ -80,8 +94,8 @@ if ($routine->schedule->isDue(now(), since: $routine->last_run_at)) {
 }
 ```
 
-`isDue` asks whether any branch has a scheduled point **after `since`,
-through `at`** — the same half-open question as the engine's
+`isDue` asks whether the schedule has a scheduled point **after
+`since`, through `at`** — the same half-open question as the engine's
 `hasMatchIn`, so each question's "now" becomes the next one's start and
 every point is seen exactly once across a series of polls. Catch-up,
 grace, and throttling are the caller's decisions, made by how the period
@@ -122,18 +136,21 @@ validation error as it is:
 
 ```php
 use Yarunoka\Laravel\Rules\ValidYrnk;
+use Yarunoka\Laravel\Rules\ValidYrnkSchedule;
 use Yarunoka\Laravel\Rules\ValidYrnkSchedules;
 
 $validated = $request->validate([
-    'schedule' => ['required', new ValidYrnkSchedules()],
-    'document' => ['sometimes', new ValidYrnk()],
+    'schedule'  => ['required', new ValidYrnkSchedule()],
+    'schedules' => ['sometimes', new ValidYrnkSchedules()],
+    'document'  => ['sometimes', new ValidYrnk()],
 ]);
 ```
 
-`ValidYrnkSchedules` checks a schedules part — structure, values, and
-references against the configured environment — and `ValidYrnk` a whole
-document. What passed validation is exactly what the cast will accept,
-so validate-then-store never fails in the second step.
+`ValidYrnkSchedule` checks one schedule, `ValidYrnkSchedules` a
+schedules part, `ValidYrnk` a whole document — structure, values, and
+references against the configured environment. What passed validation is
+exactly what the cast will accept, so validate-then-store never fails in
+the second step.
 
 ## Dirtiness and serialization
 

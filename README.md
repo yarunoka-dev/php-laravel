@@ -24,10 +24,13 @@ This package binds that engine into Laravel:
   `YrnkEvaluator` / `YrnkParser` into the container — scoped per request,
   and yielding to any binding the application makes itself.
 - **Eloquent casts** store schedules in JSON columns with validation on
-  both paths: a schedules-part column comes back as a wrapper with the
-  firing decision (`isDue`), a whole-document column as a bare `Yrnk`.
-- **Validation rules** (`ValidYrnk`, `ValidYrnkSchedules`) reject a bad
-  request with the engine's own message on the validation error.
+  both paths: a schedule column comes back as a `Schedule` wrapper with
+  the firing decision (`isDue`), a schedules-part column as `Schedules`
+  (a list of `Schedule` composed with any), and a whole-document column
+  as a bare `Yrnk`.
+- **Validation rules** (`ValidYrnk`, `ValidYrnkSchedule`,
+  `ValidYrnkSchedules`) reject a bad request with the engine's own
+  message on the validation error.
 - **Container-made resolvers**: a name in the config maps to a class the
   Laravel container instantiates on first use, so constructor injection
   works; binding one of the core's layer interfaces wins over the config.
@@ -66,7 +69,8 @@ return [
 ];
 ```
 
-Cast a JSON column to a schedules part by naming the wrapper in `casts()`:
+Cast a JSON column to one schedule by naming the wrapper in `casts()`
+(`Schedules::class` casts a column of many the same way):
 
 ```php
 use Yarunoka\Laravel\Schedule;
@@ -81,13 +85,13 @@ class Routine extends Model
 ```
 
 Validate a request and store the schedule as it was spelled — an
-invalid schedules part never reaches the database:
+invalid schedule never reaches the database:
 
 ```php
-use Yarunoka\Laravel\Rules\ValidYrnkSchedules;
+use Yarunoka\Laravel\Rules\ValidYrnkSchedule;
 
 $validated = $request->validate([
-    'schedule' => ['required', new ValidYrnkSchedules()],
+    'schedule' => ['required', new ValidYrnkSchedule()],
 ]);
 
 $routine = Routine::create(['schedule' => $validated['schedule']]);
