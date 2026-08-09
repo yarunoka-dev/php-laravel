@@ -121,7 +121,7 @@ class YrnkCastTest extends TestCase
         RoutineRecord::query()->create(['document' => '{"version": "1.0", "timezone": "America/New_York", "schedules": [{"days": [1], "times": ["09:00"]}]}']);
 
         $timezones = RoutineRecord::query()->get()->map(
-            fn (RoutineRecord $routine): ?string => $routine->document?->timezone->getName(),
+            fn(RoutineRecord $routine): ?string => $routine->document?->timezone->getName(),
         );
 
         $this->assertSame(['Asia/Tokyo', 'America/New_York'], $timezones->all());

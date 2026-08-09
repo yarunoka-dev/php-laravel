@@ -1,0 +1,37 @@
+name: php-next
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.6'
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies from lock files
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      # Run the newest PHPUnit allowed by the constraint so failures point
+      # at this package, not at an outdated test runner. PHPUnit lives in
+      # the root require-dev (testbench requires it directly), so this is a
+      # partial root update rather than php-core's vendor-bin update.
+      - name: Update PHPUnit to the latest release
+        run: composer update phpunit/phpunit --with-all-dependencies --no-interaction --no-progress
+
+      - name: Run tests
+        run: vendor/bin/phpunit

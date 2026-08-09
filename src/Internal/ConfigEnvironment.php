@@ -43,7 +43,7 @@ final class ConfigEnvironment
 
     private ?YrnkResolverContainer $resolvers = null;
 
-    /** @var array<string, mixed>|null */
+    /** @var array<mixed>|null */
     private ?array $rawCalendar = null;
 
     private ?YrnkCalendar $calendar = null;
@@ -107,8 +107,10 @@ final class ConfigEnvironment
      * The calendar config with the app's layer bindings folded in. This
      * raw form is what a document sharing the config environment embeds
      * (ScheduleCodec); the parsed form below is for answering questions.
+     * Key types are the calendar parser's business (it rejects non-object
+     * shapes itself), so the phpdoc claims no more than the config gave.
      *
-     * @return array<string, mixed>
+     * @return array<mixed>
      */
     public function rawCalendar(): array
     {

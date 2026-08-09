@@ -28,6 +28,7 @@
     },
     "require-dev": {
         "azuyalabs/yasumi": "^2.11",
+        "bamarni/composer-bin-plugin": "^1.8",
         "orchestra/testbench": "^11.1",
         "phpunit/phpunit": "^13.0"
     },
@@ -44,7 +45,17 @@
             "Yarunoka\\Laravel\\Tests\\": "tests/"
         }
     },
+    "config": {
+        "allow-plugins": {
+            "bamarni/composer-bin-plugin": true
+        }
+    },
     "extra": {
+        "bamarni-bin": {
+            "bin-links": true,
+            "forward-command": true,
+            "target-directory": "vendor-bin"
+        },
         "laravel": {
             "providers": [
                 "Yarunoka\\Laravel\\YarunokaServiceProvider"

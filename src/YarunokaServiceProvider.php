@@ -32,12 +32,12 @@ class YarunokaServiceProvider extends ServiceProvider
         $this->app->scoped(ConfigEnvironment::class);
         $this->app->scoped(ScheduleCodec::class);
 
-        $this->app->scopedIf(YrnkEvaluator::class, static fn (Container $app): YrnkEvaluator => new YrnkEvaluator(
+        $this->app->scopedIf(YrnkEvaluator::class, static fn(Container $app): YrnkEvaluator => new YrnkEvaluator(
             $app->make(ConfigEnvironment::class)->calendar(),
             $app->make(ConfigEnvironment::class)->timezone(),
         ));
 
-        $this->app->scopedIf(YrnkParser::class, static fn (Container $app): YrnkParser => new YrnkParser(
+        $this->app->scopedIf(YrnkParser::class, static fn(Container $app): YrnkParser => new YrnkParser(
             $app->make(ConfigEnvironment::class)->resolverContainer(),
         ));
     }

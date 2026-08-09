@@ -10,7 +10,6 @@ use Orchestra\Testbench\Attributes\DefineEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 use Yarunoka\Calendar\YrnkCalendar;
 use Yarunoka\Exceptions\MissingCalendarDataException;
-use Yarunoka\Exceptions\UndefinedNameException;
 use Yarunoka\Exceptions\UnregisteredResolverException;
 use Yarunoka\Laravel\Tests\Support\HolidaySource;
 use Yarunoka\Laravel\Tests\Support\InjectedHolidaysResolver;
@@ -90,6 +89,9 @@ class YarunokaServiceProviderTest extends TestCase
 
     // ---- helpers ----
 
+    /**
+     * @param  array<string, mixed>  $raw
+     */
     private function schedule(array $raw): YrnkSchedule
     {
         return new YrnkScheduleParser()->parse($raw, new DateTimeZone('UTC'));
@@ -290,7 +292,7 @@ class YarunokaServiceProviderTest extends TestCase
     public function the_bridge_yields_when_the_app_rebinds_yrnk_evaluator(): void
     {
         $custom = new YrnkEvaluator(new YrnkCalendar(), new DateTimeZone('UTC'));
-        app()->scoped(YrnkEvaluator::class, fn () => $custom);
+        app()->scoped(YrnkEvaluator::class, fn() => $custom);
 
         $this->assertSame($custom, app()->make(YrnkEvaluator::class));
     }
