@@ -23,15 +23,20 @@ jobs:
           tools: composer:v2
           coverage: none
 
+      # php+ ignores only the upper bound of php platform requirements:
+      # transitive dependencies (e.g. nette/* behind laravel/framework) pin
+      # a ceiling below the next PHP, which would stop the install before
+      # any code runs. The canary asks whether THIS package survives the
+      # next PHP, so their ceilings are lifted while every floor still holds.
       - name: Install dependencies from lock files
-        run: composer install --no-interaction --no-progress --prefer-dist
+        run: composer install --no-interaction --no-progress --prefer-dist --ignore-platform-req=php+
 
       # Run the newest PHPUnit allowed by the constraint so failures point
       # at this package, not at an outdated test runner. PHPUnit lives in
       # the root require-dev (testbench requires it directly), so this is a
       # partial root update rather than php-core's vendor-bin update.
       - name: Update PHPUnit to the latest release
-        run: composer update phpunit/phpunit --with-all-dependencies --no-interaction --no-progress
+        run: composer update phpunit/phpunit --with-all-dependencies --no-interaction --no-progress --ignore-platform-req=php+
 
       - name: Run tests
         run: vendor/bin/phpunit
