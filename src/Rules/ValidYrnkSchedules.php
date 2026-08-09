@@ -26,7 +26,7 @@ class ValidYrnkSchedules implements ValidationRule
         }
 
         try {
-            Container::getInstance()->make(ScheduleCodec::class)->decode($value);
+            Container::getInstance()->make(ScheduleCodec::class)->decodeSchedules($value);
         } catch (ExceptionInterface $e) {
             $fail($e->getMessage());
         }

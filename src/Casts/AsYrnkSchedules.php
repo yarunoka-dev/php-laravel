@@ -37,7 +37,7 @@ final class AsYrnkSchedules implements CastsAttributes, ComparesCastableAttribut
                 throw new InvalidYrnkException('The column value is not a JSON string: ' . get_debug_type($value));
             }
 
-            return new Schedule(Container::getInstance()->make(ScheduleCodec::class)->decode($value));
+            return new Schedule(Container::getInstance()->make(ScheduleCodec::class)->decodeSchedules($value));
         } catch (ExceptionInterface $e) {
             throw new InvalidYrnkColumnException(
                 sprintf('The %s column of %s does not hold a readable schedules part: %s', $key, $model::class, $e->getMessage()),
@@ -68,7 +68,7 @@ final class AsYrnkSchedules implements CastsAttributes, ComparesCastableAttribut
             );
         }
 
-        return Container::getInstance()->make(ScheduleCodec::class)->encode($value);
+        return Container::getInstance()->make(ScheduleCodec::class)->encodeSchedules($value);
     }
 
     /**

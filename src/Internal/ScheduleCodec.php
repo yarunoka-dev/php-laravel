@@ -9,9 +9,10 @@ use Yarunoka\YrnkEvaluator;
 use Yarunoka\YrnkSchedule;
 
 /**
- * Opens and closes a schedules part (a column of list<RawSchedule>) with
- * validation against the config environment. Shared by the cast (storing
- * and reading) and the rule (rejecting a request with a 422).
+ * Opens and closes schedule columns with validation against the config
+ * environment: one schedule (a column of RawSchedule) and a schedules
+ * part (a column of list<RawSchedule>). Shared by the casts (storing and
+ * reading) and the rules (rejecting a request with a 422).
  *
  * Structure and values are the schedule parser's calls; that every name
  * resolves in the config environment is asked eagerly (ensureResolvable),
@@ -30,14 +31,50 @@ final readonly class ScheduleCodec
     ) {}
 
     /**
+     * JSON string | array → one validated schedule.
+     *
+     * @param  string|array<mixed>  $raw
+     */
+    public function decodeSchedule(string|array $raw): YrnkSchedule
+    {
+        $raw = $this->arrayFrom($raw, 'The schedule must be a JSON object');
+
+        if (array_is_list($raw)) {
+            throw new InvalidYrnkException('The schedule must be a single object (a list belongs in a schedules column)');
+        }
+
+        $schedule = $this->parser->parse($raw, $this->environment->timezone());
+
+        $this->ensureResolvable([$schedule]);
+
+        return $schedule;
+    }
+
+    /**
+     * One schedule (a YrnkSchedule | an array | a JSON string) → the JSON
+     * to store. An invalid schedule stops on an exception and never
+     * reaches the database.
+     *
+     * @param  YrnkSchedule|array<mixed>|string  $value
+     */
+    public function encodeSchedule(YrnkSchedule|array|string $value): string
+    {
+        $schedule = $value instanceof YrnkSchedule ? $value : $this->decodeSchedule($value);
+
+        $this->ensureResolvable([$schedule]);
+
+        return json_encode($this->builder->build($schedule), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+    }
+
+    /**
      * JSON string | array → the validated schedules.
      *
      * @param  string|array<mixed>  $raw
      * @return non-empty-list<YrnkSchedule>
      */
-    public function decode(string|array $raw): array
+    public function decodeSchedules(string|array $raw): array
     {
-        $raw = $this->listFrom($raw);
+        $raw = $this->arrayFrom($raw, 'The schedules part must be a JSON list');
 
         if (! array_is_list($raw)) {
             throw new InvalidYrnkException('The schedules part must be a list (wrap even a single schedule in a list)');
@@ -70,9 +107,9 @@ final readonly class ScheduleCodec
      *
      * @param  list<YrnkSchedule>|array<mixed>|string  $value
      */
-    public function encode(array|string $value): string
+    public function encodeSchedules(array|string $value): string
     {
-        $schedules = $this->isScheduleList($value) ? $value : $this->decode($value);
+        $schedules = $this->isScheduleList($value) ? $value : $this->decodeSchedules($value);
 
         $this->ensureResolvable($schedules);
 
@@ -85,7 +122,7 @@ final readonly class ScheduleCodec
      * @param  string|array<mixed>  $raw
      * @return array<mixed>
      */
-    private function listFrom(string|array $raw): array
+    private function arrayFrom(string|array $raw, string $message): array
     {
         if (! is_string($raw)) {
             return $raw;
@@ -94,7 +131,7 @@ final readonly class ScheduleCodec
         $decoded = json_decode($raw, associative: true);
 
         if (! is_array($decoded)) {
-            throw new InvalidYrnkException('The schedules part must be a JSON list');
+            throw new InvalidYrnkException($message);
         }
 
         return $decoded;
