@@ -8,11 +8,12 @@ use Yarunoka\Laravel\Schedule;
 use Yarunoka\Yrnk;
 
 /**
- * A model for the cast tests. The schedules column is a schedules part
- * (named as the Castable wrapper), the document column a whole document.
+ * A model for the cast tests. The schedule column holds a schedules part
+ * (cast by naming the Castable wrapper), the document column a whole
+ * document.
  *
  * @property int $id
- * @property Schedule|null $schedules
+ * @property Schedule|null $schedule
  * @property Yrnk|null $document
  */
 class RoutineRecord extends Model
@@ -27,7 +28,7 @@ class RoutineRecord extends Model
     protected function casts(): array
     {
         return [
-            'schedules' => Schedule::class,
+            'schedule' => Schedule::class,
             'document' => AsYrnk::class,
         ];
     }

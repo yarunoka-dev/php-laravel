@@ -23,7 +23,7 @@ class YrnkCastTest extends TestCase
 
         Schema::create('routine_records', function (Blueprint $table): void {
             $table->id();
-            $table->json('schedules')->nullable();
+            $table->json('schedule')->nullable();
             $table->json('document')->nullable();
         });
     }

@@ -15,7 +15,7 @@ sidebar:
 
 The wrapper the cast answers a schedules-part column with. The core's YrnkSchedule is one OR branch and the judgment API is per branch, so the any-composition a column (a whole schedules part — a list of branches) needs is closed inside this class. The firing vocabulary the core deliberately lacks (isDue) lives here — convenience is the bridge's business.
 
-readonly, so a change is a reassignment (`$routine->schedules = $new`).
+readonly, so a change is a reassignment (`$routine->schedule = $new`).
 
 #### Properties
 

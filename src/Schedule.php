@@ -20,7 +20,7 @@ use Yarunoka\YrnkSchedule;
  * core deliberately lacks (isDue) lives here — convenience is the
  * bridge's business.
  *
- * readonly, so a change is a reassignment (`$routine->schedules = $new`).
+ * readonly, so a change is a reassignment (`$routine->schedule = $new`).
  *
  * @implements Arrayable<int, array<string, mixed>>
  */

@@ -25,7 +25,7 @@ app(YrnkEvaluator::class)->matches($schedule, now());
 app(YrnkParser::class)->parse($json);   // knows the config's resolver names
 ```
 
-## Storing a schedules column
+## Storing a schedule column
 
 A column holding a **schedules part** — a JSON list of schedules that
 share the application's calendar — is cast by naming the wrapper in
@@ -38,7 +38,7 @@ class Routine extends Model
 {
     protected function casts(): array
     {
-        return ['schedules' => Schedule::class];
+        return ['schedule' => Schedule::class];
     }
 }
 ```
@@ -53,7 +53,7 @@ the column.
 
 ```php
 $routine = Routine::create([
-    'schedules' => [
+    'schedule' => [
         ['days' => [25], 'shift' => ['prev', 'or_same', 'business_day'], 'times' => ['10:00']],
     ],
 ]);
@@ -74,7 +74,7 @@ legal in a column and fire as one.
 The wrapper carries the firing decision, composed across its branches:
 
 ```php
-if ($routine->schedules->isDue(now(), since: $routine->last_run_at)) {
+if ($routine->schedule->isDue(now(), since: $routine->last_run_at)) {
     run();
     $routine->last_run_at = now();
 }
@@ -125,8 +125,8 @@ use Yarunoka\Laravel\Rules\ValidYrnk;
 use Yarunoka\Laravel\Rules\ValidYrnkSchedules;
 
 $validated = $request->validate([
-    'schedules' => ['required', new ValidYrnkSchedules()],
-    'document'  => ['sometimes', new ValidYrnk()],
+    'schedule' => ['required', new ValidYrnkSchedules()],
+    'document' => ['sometimes', new ValidYrnk()],
 ]);
 ```
 
