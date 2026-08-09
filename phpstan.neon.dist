@@ -3,3 +3,10 @@ parameters:
     paths:
         - src/
         - tests/
+        - tools/
+    # Docgen fixtures are parse-only input for the extractor, never loaded code
+    excludePaths:
+        - tools/docgen/tests/fixtures/
+    # php-parser lives in its own vendor-bin namespace, outside the root autoloader
+    bootstrapFiles:
+        - vendor-bin/docgen/vendor/autoload.php
