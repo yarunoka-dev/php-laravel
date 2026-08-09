@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Orchestra\Testbench\Attributes\DefineEnvironment;
 use PHPUnit\Framework\Attributes\Test;
-use Yarunoka\Laravel\Rules\ValidYrnkSchedules;
+use Yarunoka\Laravel\Rules\ValidYrnkSchedule;
+use Yarunoka\Laravel\Schedule;
 use Yarunoka\Laravel\Schedules;
 use Yarunoka\Laravel\Tests\Support\RoutineRecord;
 
@@ -28,6 +29,7 @@ class PollerScenarioTest extends TestCase
         Schema::create('routine_records', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
+            $table->json('schedule')->nullable();
             $table->json('schedules')->nullable();
             $table->timestamp('last_run_at')->nullable();
         });
@@ -55,20 +57,20 @@ class PollerScenarioTest extends TestCase
     public function validated_storing_through_poller_firing_passes_end_to_end(): void
     {
         // 1. Validate input shaped like an RPC request with the rule
-        $input = ['schedules' => [
+        $input = [
             // Payday: the 25th at 10:00, moved earlier on a closed day
             // (2026-07-25 is a Saturday, so it lands on Friday the 24th)
-            ['days' => [25], 'shift' => ['prev', 'or_same', 'business_day'], 'times' => ['10:00']],
-        ]];
+            'schedule' => ['days' => [25], 'shift' => ['prev', 'or_same', 'business_day'], 'times' => ['10:00']],
+        ];
 
         $this->assertTrue(
-            Validator::make($input, ['schedules' => ['required', new ValidYrnkSchedules()]])->passes(),
+            Validator::make($input, ['schedule' => ['required', new ValidYrnkSchedule()]])->passes(),
         );
 
         // 2. Store through the cast
         $routine = RoutineRecord::query()->create([
             'name' => 'payday-notice',
-            'schedules' => $input['schedules'],
+            'schedule' => $input['schedule'],
         ]);
 
         // 3. The poller's shape: read back, ask isDue, advance
@@ -83,9 +85,9 @@ class PollerScenarioTest extends TestCase
             '2026-07-25 10:01',
         ] as $tick) {
             $now = $this->at($tick);
-            $schedules = RoutineRecord::query()->findOrFail($routine->id)->schedules;
+            $schedule = RoutineRecord::query()->findOrFail($routine->id)->schedule;
 
-            if ($schedules instanceof Schedules && $schedules->isDue($now, since: $lastRunAt)) {
+            if ($schedule instanceof Schedule && $schedule->isDue($now, since: $lastRunAt)) {
                 $fired[] = $tick;
                 $lastRunAt = $now;
             }

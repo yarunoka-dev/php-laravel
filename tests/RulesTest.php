@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Orchestra\Testbench\Attributes\DefineEnvironment;
 use PHPUnit\Framework\Attributes\Test;
 use Yarunoka\Laravel\Rules\ValidYrnk;
+use Yarunoka\Laravel\Rules\ValidYrnkSchedule;
 use Yarunoka\Laravel\Rules\ValidYrnkSchedules;
 
 class RulesTest extends TestCase
@@ -16,6 +17,86 @@ class RulesTest extends TestCase
         $this->setConfig($app, 'yarunoka.calendar', [
             'date_sets' => ['founding-day' => ['2026-10-01']],
         ]);
+    }
+
+    // ---- ValidYrnkSchedule ----
+
+    #[Test]
+    public function a_legal_schedule_object_passes(): void
+    {
+        $validator = Validator::make(
+            ['schedule' => ['days' => [25], 'times' => ['10:00']]],
+            ['schedule' => ['required', new ValidYrnkSchedule()]],
+        );
+
+        $this->assertTrue($validator->passes());
+    }
+
+    #[Test]
+    public function a_legal_schedule_json_string_passes(): void
+    {
+        $validator = Validator::make(
+            ['schedule' => '{"days": [25], "times": ["10:00"]}'],
+            ['schedule' => ['required', new ValidYrnkSchedule()]],
+        );
+
+        $this->assertTrue($validator->passes());
+    }
+
+    #[Test]
+    public function a_schedule_structure_violation_carries_the_engines_message_onto_the_validation_error(): void
+    {
+        $validator = Validator::make(
+            ['schedule' => ['days' => [25]]], // neither times nor allday
+            ['schedule' => [new ValidYrnkSchedule()]],
+        );
+
+        $this->assertFalse($validator->passes());
+        $this->assertStringContainsString(
+            'Exactly one of times, allday, or every is required',
+            $validator->errors()->first('schedule'),
+        );
+    }
+
+    #[Test]
+    public function a_schedule_that_is_a_list_is_rejected_pointing_to_a_schedules_column(): void
+    {
+        $validator = Validator::make(
+            ['schedule' => [['days' => [25], 'times' => ['10:00']]]],
+            ['schedule' => [new ValidYrnkSchedule()]],
+        );
+
+        $this->assertFalse($validator->passes());
+        $this->assertStringContainsString('schedules column', $validator->errors()->first('schedule'));
+    }
+
+    #[Test]
+    #[DefineEnvironment('withCompanyCalendar')]
+    public function a_schedule_reference_is_validated_against_the_config_environment(): void
+    {
+        $valid = Validator::make(
+            ['schedule' => ['days' => ['founding-day'], 'allday' => true]],
+            ['schedule' => [new ValidYrnkSchedule()]],
+        );
+        $invalid = Validator::make(
+            ['schedule' => ['days' => ['nowhere-day'], 'allday' => true]],
+            ['schedule' => [new ValidYrnkSchedule()]],
+        );
+
+        $this->assertTrue($valid->passes());
+        $this->assertFalse($invalid->passes());
+        $this->assertStringContainsString('nowhere-day', $invalid->errors()->first('schedule'));
+    }
+
+    #[Test]
+    public function a_schedule_that_is_neither_an_array_nor_a_string_is_rejected(): void
+    {
+        $validator = Validator::make(
+            ['schedule' => 12345],
+            ['schedule' => [new ValidYrnkSchedule()]],
+        );
+
+        $this->assertFalse($validator->passes());
     }
 
     // ---- ValidYrnkSchedules ----
