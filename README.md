@@ -75,29 +75,29 @@ class Routine extends Model
 {
     protected function casts(): array
     {
-        return ['schedules' => Schedule::class];
+        return ['schedule' => Schedule::class];
     }
 }
 ```
 
-Validate a request and store the schedules as they were spelled — an
+Validate a request and store the schedule as it was spelled — an
 invalid schedules part never reaches the database:
 
 ```php
 use Yarunoka\Laravel\Rules\ValidYrnkSchedules;
 
 $validated = $request->validate([
-    'schedules' => ['required', new ValidYrnkSchedules()],
+    'schedule' => ['required', new ValidYrnkSchedules()],
 ]);
 
-$routine = Routine::create(['schedules' => $validated['schedules']]);
+$routine = Routine::create(['schedule' => $validated['schedule']]);
 ```
 
 Ask the firing question from a poller — was there a scheduled point since
 the last run?
 
 ```php
-if ($routine->schedules->isDue(now(), since: $routine->last_run_at)) {
+if ($routine->schedule->isDue(now(), since: $routine->last_run_at)) {
     // fire, then advance last_run_at
 }
 ```

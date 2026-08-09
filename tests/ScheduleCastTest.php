@@ -26,7 +26,7 @@ class ScheduleCastTest extends TestCase
 
         Schema::create('routine_records', function (Blueprint $table): void {
             $table->id();
-            $table->json('schedules')->nullable();
+            $table->json('schedule')->nullable();
             $table->json('document')->nullable();
         });
     }
@@ -43,18 +43,18 @@ class ScheduleCastTest extends TestCase
     }
 
     /**
-     * Reads the model back from the database and takes schedules out as
-     * the wrapper.
+     * Reads the model back from the database and takes the schedule out
+     * as the wrapper.
      */
-    private function reloadedSchedules(RoutineRecord $routine): Schedule
+    private function reloadedSchedule(RoutineRecord $routine): Schedule
     {
-        $schedules = RoutineRecord::query()->findOrFail($routine->id)->schedules;
+        $schedule = RoutineRecord::query()->findOrFail($routine->id)->schedule;
 
-        if (! $schedules instanceof Schedule) {
-            $this->fail('The schedules column did not come back as the wrapper');
+        if (! $schedule instanceof Schedule) {
+            $this->fail('The schedule column did not come back as the wrapper');
         }
 
-        return $schedules;
+        return $schedule;
     }
 
     // ---- get ----
@@ -62,35 +62,35 @@ class ScheduleCastTest extends TestCase
     #[Test]
     public function get_answers_a_schedules_part_column_as_the_wrapper(): void
     {
-        DB::table('routine_records')->insert(['schedules' => '[{"days": [25], "times": ["10:00"]}]']);
+        DB::table('routine_records')->insert(['schedule' => '[{"days": [25], "times": ["10:00"]}]']);
 
-        $schedules = RoutineRecord::query()->firstOrFail()->schedules;
+        $schedule = RoutineRecord::query()->firstOrFail()->schedule;
 
-        if (! $schedules instanceof Schedule) {
+        if (! $schedule instanceof Schedule) {
             $this->fail('The wrapper did not come back');
         }
 
-        $this->assertCount(1, $schedules->schedules);
-        $this->assertInstanceOf(YrnkSchedule::class, $schedules->schedules[0]);
+        $this->assertCount(1, $schedule->schedules);
+        $this->assertInstanceOf(YrnkSchedule::class, $schedule->schedules[0]);
     }
 
     #[Test]
     public function get_answers_a_null_column_as_null(): void
     {
-        DB::table('routine_records')->insert(['schedules' => null]);
+        DB::table('routine_records')->insert(['schedule' => null]);
 
-        $this->assertNull(RoutineRecord::query()->firstOrFail()->schedules);
+        $this->assertNull(RoutineRecord::query()->firstOrFail()->schedule);
     }
 
     #[Test]
     public function get_reports_a_broken_column_with_the_model_and_column_names(): void
     {
-        DB::table('routine_records')->insert(['schedules' => '{broken']);
+        DB::table('routine_records')->insert(['schedule' => '{broken']);
 
         $this->expectException(InvalidYrnkColumnException::class);
-        $this->expectExceptionMessageMatches('/schedules.+RoutineRecord/');
+        $this->expectExceptionMessageMatches('/schedule.+RoutineRecord/');
 
-        RoutineRecord::query()->firstOrFail()->getAttribute('schedules');
+        RoutineRecord::query()->firstOrFail()->getAttribute('schedule');
     }
 
     // ---- set ----
@@ -99,10 +99,10 @@ class ScheduleCastTest extends TestCase
     public function set_stores_an_array_with_validation(): void
     {
         $routine = RoutineRecord::query()->create([
-            'schedules' => [['days' => [25], 'times' => ['10:00']]],
+            'schedule' => [['days' => [25], 'times' => ['10:00']]],
         ]);
 
-        $stored = DB::table('routine_records')->where('id', $routine->id)->value('schedules');
+        $stored = DB::table('routine_records')->where('id', $routine->id)->value('schedule');
 
         $this->assertIsString($stored);
         $this->assertSame([['days' => [25], 'times' => ['10:00']]], json_decode($stored, associative: true));
@@ -112,10 +112,10 @@ class ScheduleCastTest extends TestCase
     public function set_accepts_a_json_string_too(): void
     {
         $routine = RoutineRecord::query()->create([
-            'schedules' => '[{"days": [25], "times": ["10:00"]}]',
+            'schedule' => '[{"days": [25], "times": ["10:00"]}]',
         ]);
 
-        $this->assertCount(1, $this->reloadedSchedules($routine)->schedules);
+        $this->assertCount(1, $this->reloadedSchedule($routine)->schedules);
     }
 
     #[Test]
@@ -125,36 +125,36 @@ class ScheduleCastTest extends TestCase
             new YrnkScheduleParser()->parse(['days' => [25], 'times' => ['10:00']], new DateTimeZone('UTC')),
         ]);
 
-        $routine = RoutineRecord::query()->create(['schedules' => $wrapper]);
+        $routine = RoutineRecord::query()->create(['schedule' => $wrapper]);
 
-        $this->assertCount(1, $this->reloadedSchedules($routine)->schedules);
+        $this->assertCount(1, $this->reloadedSchedule($routine)->schedules);
     }
 
     #[Test]
     public function set_accepts_a_list_of_yrnk_schedules_too(): void
     {
         $routine = RoutineRecord::query()->create([
-            'schedules' => [
+            'schedule' => [
                 new YrnkScheduleParser()->parse(['days' => [25], 'times' => ['10:00']], new DateTimeZone('UTC')),
             ],
         ]);
 
-        $this->assertCount(1, $this->reloadedSchedules($routine)->schedules);
+        $this->assertCount(1, $this->reloadedSchedule($routine)->schedules);
     }
 
     #[Test]
     public function set_stores_null_as_null(): void
     {
-        $routine = RoutineRecord::query()->create(['schedules' => null]);
+        $routine = RoutineRecord::query()->create(['schedule' => null]);
 
-        $this->assertNull(RoutineRecord::query()->findOrFail($routine->id)->schedules);
+        $this->assertNull(RoutineRecord::query()->findOrFail($routine->id)->schedule);
     }
 
     #[Test]
     public function set_stops_an_invalid_schedule_on_an_exception_before_the_database(): void
     {
         try {
-            RoutineRecord::query()->create(['schedules' => [['days' => [32], 'times' => ['10:00']]]]);
+            RoutineRecord::query()->create(['schedule' => [['days' => [32], 'times' => ['10:00']]]]);
             $this->fail('No exception was thrown');
         } catch (InvalidYrnkException) {
             $this->assertSame(0, DB::table('routine_records')->count());
@@ -176,20 +176,20 @@ class ScheduleCastTest extends TestCase
     #[DefineEnvironment('withTokyoAndHolidays')]
     public function is_due_is_true_when_any_branch_has_a_point_in_the_half_open_interval(): void
     {
-        $routine = RoutineRecord::query()->create(['schedules' => [
+        $routine = RoutineRecord::query()->create(['schedule' => [
             ['days' => [25], 'times' => ['10:00']],
             ['days' => ['holiday'], 'allday' => true],
         ]]);
 
-        $schedules = $this->reloadedSchedules($routine);
+        $schedule = $this->reloadedSchedule($routine);
 
         // The second branch (holiday, all-day) has its day = 2026-01-01
         // overlapping the interval — and a day is due for as long as it
         // lasts, so an interval starting mid-day still counts it
-        $this->assertTrue($schedules->isDue($this->at('2026-01-01 00:30'), since: $this->at('2025-12-31 23:00')));
-        $this->assertTrue($schedules->isDue($this->at('2026-01-01 23:00'), since: $this->at('2026-01-01 12:00')));
+        $this->assertTrue($schedule->isDue($this->at('2026-01-01 00:30'), since: $this->at('2025-12-31 23:00')));
+        $this->assertTrue($schedule->isDue($this->at('2026-01-01 23:00'), since: $this->at('2026-01-01 12:00')));
         // An interval touching no day and no point of either branch
-        $this->assertFalse($schedules->isDue($this->at('2026-01-03 09:00'), since: $this->at('2026-01-02 09:00')));
+        $this->assertFalse($schedule->isDue($this->at('2026-01-03 09:00'), since: $this->at('2026-01-02 09:00')));
     }
 
     #[Test]
@@ -199,14 +199,14 @@ class ScheduleCastTest extends TestCase
         // A column is not a document: the document-level uniqueItems rule
         // does not apply here, so identical branches stay legal (the OR
         // makes them harmless)
-        $routine = RoutineRecord::query()->create(['schedules' => [
+        $routine = RoutineRecord::query()->create(['schedule' => [
             ['days' => [25], 'times' => ['10:00']],
             ['days' => [25], 'times' => ['10:00']],
         ]]);
 
-        $schedules = $this->reloadedSchedules($routine);
+        $schedule = $this->reloadedSchedule($routine);
 
-        $this->assertTrue($schedules->isDue(
+        $this->assertTrue($schedule->isDue(
             $this->at('2026-07-25 10:00'),
             since: $this->at('2026-07-25 09:00'),
         ));
@@ -216,17 +216,17 @@ class ScheduleCastTest extends TestCase
     #[DefineEnvironment('withTokyoAndHolidays')]
     public function is_due_cuts_the_interval_half_open_the_same_as_has_match_in(): void
     {
-        $routine = RoutineRecord::query()->create(['schedules' => [
+        $routine = RoutineRecord::query()->create(['schedule' => [
             ['days' => [25], 'times' => ['10:00']],
         ]]);
 
-        $schedules = $this->reloadedSchedules($routine);
+        $schedule = $this->reloadedSchedule($routine);
         $point = $this->at('2026-07-25 10:00');
 
         // A point exactly at $at counts (the through side is closed)
-        $this->assertTrue($schedules->isDue($point, since: $this->at('2026-07-25 09:00')));
+        $this->assertTrue($schedule->isDue($point, since: $this->at('2026-07-25 09:00')));
         // A point exactly at $since does not (the since side is open)
-        $this->assertFalse($schedules->isDue($this->at('2026-07-25 11:00'), since: $point));
+        $this->assertFalse($schedule->isDue($this->at('2026-07-25 11:00'), since: $point));
     }
 
     // ---- dirtiness and serialization ----
@@ -235,37 +235,37 @@ class ScheduleCastTest extends TestCase
     public function the_same_content_differing_only_in_key_order_or_whitespace_is_not_dirty(): void
     {
         $routine = RoutineRecord::query()->create([
-            'schedules' => '[{"days":[25],"times":["10:00"]}]',
+            'schedule' => '[{"days":[25],"times":["10:00"]}]',
         ]);
 
         $routine = RoutineRecord::query()->findOrFail($routine->id);
-        $routine->setAttribute('schedules', '[{"times": ["10:00"], "days": [25]}]');
+        $routine->setAttribute('schedule', '[{"times": ["10:00"], "days": [25]}]');
 
-        $this->assertFalse($routine->isDirty('schedules'));
+        $this->assertFalse($routine->isDirty('schedule'));
     }
 
     #[Test]
     public function changed_content_is_dirty(): void
     {
         $routine = RoutineRecord::query()->create([
-            'schedules' => '[{"days":[25],"times":["10:00"]}]',
+            'schedule' => '[{"days":[25],"times":["10:00"]}]',
         ]);
 
         $routine = RoutineRecord::query()->findOrFail($routine->id);
-        $routine->setAttribute('schedules', '[{"days": [26], "times": ["10:00"]}]');
+        $routine->setAttribute('schedule', '[{"days": [26], "times": ["10:00"]}]');
 
-        $this->assertTrue($routine->isDirty('schedules'));
+        $this->assertTrue($routine->isDirty('schedule'));
     }
 
     #[Test]
     public function the_models_to_array_shows_the_raw_form_of_the_dsl(): void
     {
         $routine = RoutineRecord::query()->create([
-            'schedules' => [['days' => [25], 'times' => ['10:00']]],
+            'schedule' => [['days' => [25], 'times' => ['10:00']]],
         ]);
 
         $array = RoutineRecord::query()->findOrFail($routine->id)->toArray();
 
-        $this->assertSame([['days' => [25], 'times' => ['10:00']]], $array['schedules']);
+        $this->assertSame([['days' => [25], 'times' => ['10:00']]], $array['schedule']);
     }
 }

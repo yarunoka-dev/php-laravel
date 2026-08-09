@@ -28,7 +28,7 @@ class PollerScenarioTest extends TestCase
         Schema::create('routine_records', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
-            $table->json('schedules')->nullable();
+            $table->json('schedule')->nullable();
             $table->timestamp('last_run_at')->nullable();
         });
     }
@@ -55,20 +55,20 @@ class PollerScenarioTest extends TestCase
     public function validated_storing_through_poller_firing_passes_end_to_end(): void
     {
         // 1. Validate input shaped like an RPC request with the rule
-        $input = ['schedules' => [
+        $input = ['schedule' => [
             // Payday: the 25th at 10:00, moved earlier on a closed day
             // (2026-07-25 is a Saturday, so it lands on Friday the 24th)
             ['days' => [25], 'shift' => ['prev', 'or_same', 'business_day'], 'times' => ['10:00']],
         ]];
 
         $this->assertTrue(
-            Validator::make($input, ['schedules' => ['required', new ValidYrnkSchedules()]])->passes(),
+            Validator::make($input, ['schedule' => ['required', new ValidYrnkSchedules()]])->passes(),
         );
 
         // 2. Store through the cast
         $routine = RoutineRecord::query()->create([
             'name' => 'payday-notice',
-            'schedules' => $input['schedules'],
+            'schedule' => $input['schedule'],
         ]);
 
         // 3. The poller's shape: read back, ask isDue, advance
@@ -83,9 +83,9 @@ class PollerScenarioTest extends TestCase
             '2026-07-25 10:01',
         ] as $tick) {
             $now = $this->at($tick);
-            $schedules = RoutineRecord::query()->findOrFail($routine->id)->schedules;
+            $schedule = RoutineRecord::query()->findOrFail($routine->id)->schedule;
 
-            if ($schedules instanceof Schedule && $schedules->isDue($now, since: $lastRunAt)) {
+            if ($schedule instanceof Schedule && $schedule->isDue($now, since: $lastRunAt)) {
                 $fired[] = $tick;
                 $lastRunAt = $now;
             }
@@ -103,7 +103,7 @@ class PollerScenarioTest extends TestCase
     {
         $routine = RoutineRecord::query()->create([
             'name' => 'holiday-morning',
-            'schedules' => [['days' => ['holiday'], 'times' => ['08:00']]],
+            'schedule' => [['days' => ['holiday'], 'times' => ['08:00']]],
         ]);
 
         // The first poll comes long past the 2026-07-20 (Marine Day)
@@ -111,14 +111,14 @@ class PollerScenarioTest extends TestCase
         $lastRunAt = $this->at('2026-07-19 00:00');
         $now = $this->at('2026-07-20 23:00');
 
-        $schedules = RoutineRecord::query()->findOrFail($routine->id)->schedules;
-        $this->assertInstanceOf(Schedule::class, $schedules);
+        $schedule = RoutineRecord::query()->findOrFail($routine->id)->schedule;
+        $this->assertInstanceOf(Schedule::class, $schedule);
 
         // Late, but it still fires once (catch-up)
-        $this->assertTrue($schedules->isDue($now, since: $lastRunAt));
+        $this->assertTrue($schedule->isDue($now, since: $lastRunAt));
 
         // Advancing last_run_at after the firing, the same point never
         // fires again
-        $this->assertFalse($schedules->isDue($this->at('2026-07-21 08:30'), since: $now));
+        $this->assertFalse($schedule->isDue($this->at('2026-07-21 08:30'), since: $now));
     }
 }
