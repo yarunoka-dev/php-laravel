@@ -161,10 +161,29 @@ Changed content is dirty as usual.
 
 ## Handling failures
 
-Everything the bridge and the engine throw implements
-`Yarunoka\Exceptions\ExceptionInterface`. The bridge adds one exception
-of its own: `InvalidYrnkColumnException`, raised when a stored column
-cannot be read back — it names the model and the column, because a
-cast's failure surfaces in the middle of model retrieval where the cause
-is otherwise hard to see. Validation failures never reach an exception:
-the rules turn them into validation errors instead.
+Failures come in two families. Everything the engine throws implements
+`Yarunoka\Exceptions\ExceptionInterface`, and the bridge lets it through
+as it is — an invalid schedule written to a column fails with the same
+exception the parser would raise. Failures of the bridge itself — the
+wiring between Laravel and Yarunoka — implement
+`Yarunoka\Laravel\Exceptions\ExceptionInterface` instead:
+`InvalidYrnkColumnException`, raised when a stored column cannot be read
+back, names the model and the column, because a cast's failure surfaces
+in the middle of model retrieval where the cause is otherwise hard to
+see.
+
+Catch either family alone, or both at once with a union catch:
+
+```php
+use Yarunoka\Exceptions\ExceptionInterface as YrnkException;
+use Yarunoka\Laravel\Exceptions\ExceptionInterface as YrnkBridgeException;
+
+try {
+    $due = $routine->schedule->isDue(now(), since: $routine->last_run_at);
+} catch (YrnkException | YrnkBridgeException $e) {
+    // anything Yarunoka-related
+}
+```
+
+Validation failures never reach an exception: the rules turn them into
+validation errors instead.

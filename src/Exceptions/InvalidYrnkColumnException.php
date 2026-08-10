@@ -3,7 +3,6 @@
 namespace Yarunoka\Laravel\Exceptions;
 
 use RuntimeException;
-use Yarunoka\Exceptions\ExceptionInterface;
 
 /**
  * The data a column held cannot be read as Yrnk. The cast's get runs in
