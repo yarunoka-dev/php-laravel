@@ -7,7 +7,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Yarunoka\Calendar\YrnkCalendar;
 use Yarunoka\Calendar\YrnkCalendarParser;
-use Yarunoka\Exceptions\InvalidYrnkException;
+use Yarunoka\Laravel\Exceptions\InvalidYrnkConfigException;
 use Yarunoka\Resolvers\YrnkBusinessDaysResolverInterface;
 use Yarunoka\Resolvers\YrnkBusinessHolidaysResolverInterface;
 use Yarunoka\Resolvers\YrnkHolidaysResolverInterface;
@@ -62,7 +62,7 @@ final class ConfigEnvironment
         $name = $this->config->get('yarunoka.timezone') ?? $this->config->get('app.timezone', 'UTC');
 
         if (! is_string($name)) {
-            throw new InvalidYrnkException('config yarunoka.timezone must be a timezone name string');
+            throw new InvalidYrnkConfigException('config yarunoka.timezone must be a timezone name string');
         }
 
         return $this->timezone = new DateTimeZone($name);
@@ -83,12 +83,12 @@ final class ConfigEnvironment
         $raw = $this->config->get('yarunoka.resolvers', []);
 
         if (! is_array($raw)) {
-            throw new InvalidYrnkException('config yarunoka.resolvers must be an array of resolver name => class name');
+            throw new InvalidYrnkConfigException('config yarunoka.resolvers must be an array of resolver name => class name');
         }
 
         foreach ($raw as $name => $class) {
             if (! is_string($class)) {
-                throw new InvalidYrnkException("config yarunoka.resolvers.{$name} must be a class name string");
+                throw new InvalidYrnkConfigException("config yarunoka.resolvers.{$name} must be a class name string");
             }
 
             $resolvers->add((string) $name, new ContainerResolver($this->container, $class));
@@ -121,7 +121,7 @@ final class ConfigEnvironment
         $raw = $this->config->get('yarunoka.calendar', []);
 
         if (! is_array($raw)) {
-            throw new InvalidYrnkException('config yarunoka.calendar must be an array shaped like the calendar part of a document');
+            throw new InvalidYrnkConfigException('config yarunoka.calendar must be an array shaped like the calendar part of a document');
         }
 
         foreach (self::LAYER_BINDINGS as $key => [$interface, $name]) {

@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Yarunoka\Calendar\YrnkCalendar;
 use Yarunoka\Exceptions\MissingCalendarDataException;
 use Yarunoka\Exceptions\UnregisteredResolverException;
+use Yarunoka\Laravel\Exceptions\InvalidYrnkConfigException;
 use Yarunoka\Laravel\Exceptions\InvalidYrnkResolverException;
 use Yarunoka\Laravel\Tests\Support\HolidaySource;
 use Yarunoka\Laravel\Tests\Support\InjectedHolidaysResolver;
@@ -84,6 +85,26 @@ class YarunokaServiceProviderTest extends TestCase
     protected function withUnknownTimezone(Application $app): void
     {
         $this->setConfig($app, 'yarunoka.timezone', 'Neko/Nowhere');
+    }
+
+    protected function withNonStringTimezone(Application $app): void
+    {
+        $this->setConfig($app, 'yarunoka.timezone', 9);
+    }
+
+    protected function withNonArrayResolvers(Application $app): void
+    {
+        $this->setConfig($app, 'yarunoka.resolvers', InjectedHolidaysResolver::class);
+    }
+
+    protected function withNonStringResolverClass(Application $app): void
+    {
+        $this->setConfig($app, 'yarunoka.resolvers', ['jp-holidays' => 42]);
+    }
+
+    protected function withNonArrayCalendar(Application $app): void
+    {
+        $this->setConfig($app, 'yarunoka.calendar', 'yasumi-Japan');
     }
 
     protected function withWorkweekAndDateSets(Application $app): void
@@ -214,6 +235,48 @@ class YarunokaServiceProviderTest extends TestCase
         $schedule = $this->schedule(['days' => ['founding-day'], 'allday' => true]);
 
         $this->assertTrue($evaluator->matches($schedule, $this->at('2026-10-01 12:00')));
+    }
+
+    // ---- config values of the wrong type ----
+
+    #[Test]
+    #[DefineEnvironment('withNonStringTimezone')]
+    public function a_non_string_timezone_in_the_config_is_a_bridge_exception(): void
+    {
+        $this->expectException(InvalidYrnkConfigException::class);
+        $this->expectExceptionMessageMatches('/yarunoka\.timezone/');
+
+        app()->make(YrnkEvaluator::class);
+    }
+
+    #[Test]
+    #[DefineEnvironment('withNonArrayResolvers')]
+    public function non_array_resolvers_in_the_config_are_a_bridge_exception(): void
+    {
+        $this->expectException(InvalidYrnkConfigException::class);
+        $this->expectExceptionMessageMatches('/yarunoka\.resolvers/');
+
+        app()->make(YrnkEvaluator::class);
+    }
+
+    #[Test]
+    #[DefineEnvironment('withNonStringResolverClass')]
+    public function a_non_string_resolver_class_in_the_config_is_a_bridge_exception(): void
+    {
+        $this->expectException(InvalidYrnkConfigException::class);
+        $this->expectExceptionMessageMatches('/yarunoka\.resolvers\.jp-holidays/');
+
+        app()->make(YrnkEvaluator::class);
+    }
+
+    #[Test]
+    #[DefineEnvironment('withNonArrayCalendar')]
+    public function a_non_array_calendar_in_the_config_is_a_bridge_exception(): void
+    {
+        $this->expectException(InvalidYrnkConfigException::class);
+        $this->expectExceptionMessageMatches('/yarunoka\.calendar/');
+
+        app()->make(YrnkEvaluator::class);
     }
 
     // ---- binding the layer interfaces (the app wins) ----

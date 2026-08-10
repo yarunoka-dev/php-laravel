@@ -5,12 +5,14 @@ namespace Yarunoka\Laravel\Tests;
 use PHPUnit\Framework\Attributes\Test;
 use Yarunoka\Laravel\Exceptions\ExceptionInterface;
 use Yarunoka\Laravel\Exceptions\InvalidYrnkColumnException;
+use Yarunoka\Laravel\Exceptions\InvalidYrnkConfigException;
 use Yarunoka\Laravel\Exceptions\InvalidYrnkResolverException;
 
 class ExceptionsTest extends TestCase
 {
     private const array BRIDGE_EXCEPTIONS = [
         InvalidYrnkColumnException::class,
+        InvalidYrnkConfigException::class,
         InvalidYrnkResolverException::class,
     ];
 

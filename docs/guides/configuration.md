@@ -9,7 +9,10 @@ sidebar:
 timezone schedules are judged in, the calendar definitions, and the
 resolvers that answer names at runtime. The bridge builds
 `YrnkEvaluator` and `YrnkParser` from it and binds them into the
-container, scoped per request.
+container, scoped per request. A value of the wrong type fails with
+`InvalidYrnkConfigException` when the environment is first derived;
+what a well-typed value *means* is the engine's question, answered
+with the core's exceptions.
 
 ```php
 return [
