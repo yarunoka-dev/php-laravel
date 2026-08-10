@@ -104,9 +104,10 @@ your application and the config would only repeat its name.
 - **The config is read lazily**, when the environment is first derived
   within a scope — not at registration. Config set by a later provider,
   or by a test, is honoured. After that first derivation a change waits
-  for the next scope, which a request never notices — but a long-lived
-  process (`tinker`, a queue worker) renews within the current scope
-  with `app()->forgetScopedInstances()`.
+  for the next scope, which a request or a queue job never notices —
+  where one scope lives long (`tinker`, a test),
+  `app()->forgetScopedInstances()` renews within the current scope,
+  though it resets every scoped service, not only Yarunoka's.
 - **Your bindings win.** The bridge registers `YrnkEvaluator` and
   `YrnkParser` with `scopedIf`, so an application that binds either one
   itself replaces the bridge's construction entirely.

@@ -69,10 +69,12 @@ return [
 ];
 ```
 
-The bindings are scoped per request, and the config is read once per
-scope, when first used. In a long-lived process — `tinker`, a queue
-worker — a config change made at runtime shows up on the next scope;
-call `app()->forgetScopedInstances()` to renew within the current one.
+The bindings are scoped — resolved once per request or queue job — and
+the config is read at first use within a scope. Where one scope lives
+long (`tinker`, a test), a config change made after that first use
+waits for the next scope; `app()->forgetScopedInstances()` renews
+within the current one, though it resets every scoped service, not
+only Yarunoka's.
 
 Cast a JSON column to one schedule by naming the wrapper in `casts()`
 (`Schedules::class` casts a column of many the same way):
@@ -91,7 +93,8 @@ class Routine extends Model
 
 A column can also hold a **whole Yrnk document** — its own timezone and
 calendar per row. `Yrnk` is the core's class, so there is no wrapper to
-name: a whole-document column names the cast class itself:
+name: a whole-document column names the cast class itself, in the
+model's `casts()`:
 
 ```php
 use Yarunoka\Laravel\Casts\AsYrnk;
