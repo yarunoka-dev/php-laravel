@@ -35,10 +35,6 @@ This package binds that engine into Laravel:
   Laravel container instantiates on first use, so constructor injection
   works; binding one of the core's layer interfaces wins over the config.
 
-> [!WARNING]
-> The 0.x releases exist to exercise the release pipeline. They are
-> **not intended for use**. This notice will be removed at 1.0.0.
-
 ## Installation
 
 ```console
