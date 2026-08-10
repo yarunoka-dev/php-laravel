@@ -100,9 +100,15 @@ The Eloquent cast of a schedules-part column (the JSON of a list<RawSchedule>). 
 
 ## Yarunoka\Laravel\Exceptions
 
+### ExceptionInterface
+
+`interface ExceptionInterface extends Throwable`
+
+Every exception the bridge itself raises — a failure of the wiring between Laravel and Yarunoka, not of the engine. Deliberately independent of the core's ExceptionInterface: the bridge holds no core functionality, so "the integration failed" (this interface) and "the DSL or the engine failed" (the core's) stay distinguishable to a caller, and a union catch covers both.
+
 ### InvalidYrnkColumnException
 
-`class InvalidYrnkColumnException extends RuntimeException implements Yarunoka\Exceptions\ExceptionInterface`
+`class InvalidYrnkColumnException extends RuntimeException implements Yarunoka\Laravel\Exceptions\ExceptionInterface`
 
 The data a column held cannot be read as Yrnk. The cast's get runs in the middle of model retrieval or serialization — a place where the cause is hard to see — so the message names the model and the column.
 
