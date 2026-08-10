@@ -3,7 +3,7 @@
 namespace Yarunoka\Laravel\Internal;
 
 use Illuminate\Contracts\Container\Container;
-use RuntimeException;
+use Yarunoka\Laravel\Exceptions\InvalidYrnkResolverException;
 use Yarunoka\Resolvers\YrnkResolverInterface;
 use Yarunoka\YrnkDate;
 
@@ -36,7 +36,7 @@ final class ContainerResolver implements YrnkResolverInterface
         $resolver = $this->container->make($this->abstract);
 
         if (! $resolver instanceof YrnkResolverInterface) {
-            throw new RuntimeException(
+            throw new InvalidYrnkResolverException(
                 "{$this->abstract} must resolve to a YrnkResolverInterface implementation",
             );
         }

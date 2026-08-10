@@ -75,6 +75,8 @@ constructor injection works — a resolver can take a repository, a cache,
 or an HTTP client, and nothing is instantiated until a question first
 reaches the name. The names are usable wherever the DSL accepts a name:
 the calendar positions above, and documents stored by your application.
+A class that turns out not to implement the interface fails at that
+first use with `InvalidYrnkResolverException`.
 
 Writing a resolver is the engine's contract, documented by
 [yarunoka/core](https://github.com/yarunoka-dev/php-core).
