@@ -11,6 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Yarunoka\Calendar\YrnkCalendar;
 use Yarunoka\Exceptions\MissingCalendarDataException;
 use Yarunoka\Exceptions\UnregisteredResolverException;
+use Yarunoka\Laravel\Exceptions\InvalidYrnkResolverException;
 use Yarunoka\Laravel\Tests\Support\HolidaySource;
 use Yarunoka\Laravel\Tests\Support\InjectedHolidaysResolver;
 use Yarunoka\Laravel\YarunokaServiceProvider;
@@ -51,6 +52,12 @@ class YarunokaServiceProviderTest extends TestCase
     protected function withUnregisteredResolverName(Application $app): void
     {
         $this->setConfig($app, 'yarunoka.calendar.holidays', 'nowhere');
+    }
+
+    protected function withMisboundResolver(Application $app): void
+    {
+        $this->setConfig($app, 'yarunoka.calendar.holidays', 'jp-holidays');
+        $this->setConfig($app, 'yarunoka.resolvers', ['jp-holidays' => \stdClass::class]);
     }
 
     protected function withYasumi(Application $app): void
@@ -173,6 +180,18 @@ class YarunokaServiceProviderTest extends TestCase
         $evaluator = app()->make(YrnkEvaluator::class);
 
         $this->expectException(UnregisteredResolverException::class);
+
+        $evaluator->matches($this->holidaySchedule(), $this->at('2026-01-01 12:00'));
+    }
+
+    #[Test]
+    #[DefineEnvironment('withMisboundResolver')]
+    public function a_resolver_class_of_the_wrong_type_is_a_bridge_exception_at_first_use(): void
+    {
+        $evaluator = app()->make(YrnkEvaluator::class);
+
+        $this->expectException(InvalidYrnkResolverException::class);
+        $this->expectExceptionMessageMatches('/stdClass/');
 
         $evaluator->matches($this->holidaySchedule(), $this->at('2026-01-01 12:00'));
     }
