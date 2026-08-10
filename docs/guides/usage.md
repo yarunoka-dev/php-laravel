@@ -171,7 +171,9 @@ wiring between Laravel and Yarunoka — implement
 back, names the model and the column, because a cast's failure surfaces
 in the middle of model retrieval where the cause is otherwise hard to
 see; `InvalidYrnkResolverException`, raised when a resolver name's class
-turns out not to implement `YrnkResolverInterface` at its first use.
+turns out not to implement `YrnkResolverInterface` at its first use;
+`InvalidYrnkConfigException`, raised when a `yarunoka.*` config value
+has the wrong type.
 
 Catch either family alone, or both at once with a union catch:
 

@@ -112,6 +112,12 @@ Every exception the bridge itself raises — a failure of the wiring between Lar
 
 The data a column held cannot be read as Yrnk. The cast's get runs in the middle of model retrieval or serialization — a place where the cause is hard to see — so the message names the model and the column.
 
+### InvalidYrnkConfigException
+
+`class InvalidYrnkConfigException extends RuntimeException implements Yarunoka\Laravel\Exceptions\ExceptionInterface`
+
+A yarunoka.* config value has the wrong type. Only the shape the bridge reads is its business — whether the content means something valid is the engine's question, answered with the core's exceptions.
+
 ### InvalidYrnkResolverException
 
 `class InvalidYrnkResolverException extends RuntimeException implements Yarunoka\Laravel\Exceptions\ExceptionInterface`
