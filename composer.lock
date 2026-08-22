@@ -6898,25 +6898,25 @@
         },
         {
             "name": "orchestra/testbench",
-            "version": "v11.1.0",
+            "version": "v11.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/orchestral/testbench.git",
-                "reference": "997f33e5200c7e8db4756b35a9deb3f5f3086759"
+                "reference": "a326be05fc2375b6240b4ab5279a796e05b6d535"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/orchestral/testbench/zipball/997f33e5200c7e8db4756b35a9deb3f5f3086759",
-                "reference": "997f33e5200c7e8db4756b35a9deb3f5f3086759",
+                "url": "https://api.github.com/repos/orchestral/testbench/zipball/a326be05fc2375b6240b4ab5279a796e05b6d535",
+                "reference": "a326be05fc2375b6240b4ab5279a796e05b6d535",
                 "shasum": ""
             },
             "require": {
                 "composer-runtime-api": "^2.2",
                 "fakerphp/faker": "^1.23",
-                "laravel/framework": "^13.1.1",
+                "laravel/framework": "^13.23.0",
                 "mockery/mockery": "^1.6.10",
-                "orchestra/testbench-core": "^11.2.0",
-                "orchestra/workbench": "^11.0.1",
+                "orchestra/testbench-core": "^11.4.0",
+                "orchestra/workbench": "^11.2.0",
                 "php": "^8.3",
                 "phpunit/phpunit": "^11.5.50|^12.5.8|^13.0.0",
                 "symfony/process": "^7.4.5|^8.0.5",
@@ -6947,22 +6947,22 @@
             ],
             "support": {
                 "issues": "https://github.com/orchestral/testbench/issues",
-                "source": "https://github.com/orchestral/testbench/tree/v11.1.0"
+                "source": "https://github.com/orchestral/testbench/tree/v11.2.0"
             },
-            "time": "2026-04-09T05:11:06+00:00"
+            "time": "2026-08-11T11:26:50+00:00"
         },
         {
             "name": "orchestra/testbench-core",
-            "version": "v11.3.6",
+            "version": "v11.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/orchestral/testbench-core.git",
-                "reference": "769f8f2f31ca3fbc52d8c8bfad95829b012c9b99"
+                "reference": "632dc141b25414804ceb1de09be7a9eaf8d61663"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/orchestral/testbench-core/zipball/769f8f2f31ca3fbc52d8c8bfad95829b012c9b99",
-                "reference": "769f8f2f31ca3fbc52d8c8bfad95829b012c9b99",
+                "url": "https://api.github.com/repos/orchestral/testbench-core/zipball/632dc141b25414804ceb1de09be7a9eaf8d61663",
+                "reference": "632dc141b25414804ceb1de09be7a9eaf8d61663",
                 "shasum": ""
             },
             "require": {
@@ -6974,14 +6974,14 @@
             },
             "conflict": {
                 "brianium/paratest": "<7.3.0|>=8.0.0",
-                "laravel/framework": "<13.10.0|>=14.0.0",
+                "laravel/framework": "<13.23.0|>=14.0.0",
                 "laravel/serializable-closure": ">=2.0.0 <2.0.10|>=3.0.0",
                 "nunomaduro/collision": "<8.9.0|>=9.0.0",
-                "phpunit/phpunit": "<11.5.50|>=12.0.0 <12.5.8|>=13.3.0"
+                "phpunit/phpunit": "<11.5.50|>=12.0.0 <12.5.8|>=13.4.0"
             },
             "require-dev": {
                 "fakerphp/faker": "^1.24",
-                "laravel/framework": "^13.10.0",
+                "laravel/framework": "^13.23.0",
                 "laravel/pint": "^1.24",
                 "laravel/serializable-closure": "^2.0.10",
                 "mockery/mockery": "^1.6.10",
@@ -6996,7 +6996,7 @@
                 "brianium/paratest": "Allow using parallel testing (^7.3).",
                 "ext-pcntl": "Required to use all features of the console signal trapping.",
                 "fakerphp/faker": "Allow using Faker for testing (^1.23).",
-                "laravel/framework": "Required for testing (^13.10.0).",
+                "laravel/framework": "Required for testing (^13.23.0).",
                 "mockery/mockery": "Allow using Mockery for testing (^1.6).",
                 "nunomaduro/collision": "Allow using Laravel style tests output and parallel testing (^8.9).",
                 "orchestra/testbench-dusk": "Allow using Laravel Dusk for testing (^11.0).",
@@ -7042,7 +7042,7 @@
                 "issues": "https://github.com/orchestral/testbench/issues",
                 "source": "https://github.com/orchestral/testbench-core"
             },
-            "time": "2026-08-04T23:07:07+00:00"
+            "time": "2026-08-07T09:59:39+00:00"
         },
         {
             "name": "orchestra/workbench",
