@@ -55,7 +55,7 @@ resolving one and parsing a document proves the wiring:
 use Yarunoka\YrnkParser;
 
 $document = app(YrnkParser::class)->parse('{
-    "version": "1.0",
+    "version": "1.1",
     "timezone": "Asia/Tokyo",
     "schedules": [{"days": [25], "times": ["10:00"]}]
 }');

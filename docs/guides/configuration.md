@@ -39,7 +39,7 @@ like "the 25th at 10:00" means a wall clock somewhere:
 
 The calendar part of a Yrnk document, spelled as a PHP array — the same
 shape the DSL accepts under `calendar`, so what the
-[specification](https://github.com/yarunoka-dev/spec/tree/1.0) says about
+[specification](https://github.com/yarunoka-dev/spec/tree/1.1) says about
 the calendar applies here verbatim.
 
 ```php

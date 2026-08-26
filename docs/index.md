@@ -13,7 +13,7 @@ validation on every path, and rejects a bad request with the engine's own
 message.
 
 The language itself is defined in the
-[spec repository](https://github.com/yarunoka-dev/spec/tree/1.0), and the
+[spec repository](https://github.com/yarunoka-dev/spec/tree/1.1), and the
 engine — parsing, building, and the questions it answers — is documented
 by [yarunoka/core](https://github.com/yarunoka-dev/php-core). This
 documentation covers only what the bridge adds on top.
