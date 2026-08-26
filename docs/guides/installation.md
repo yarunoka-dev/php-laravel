@@ -15,11 +15,6 @@ Requires PHP 8.4 or newer and Laravel 13. The package brings
 `yarunoka/core` with it, and the service provider is registered by
 package auto-discovery — there is no bootstrapping step.
 
-:::caution
-The 0.x releases exist to exercise the release pipeline. They are **not
-intended for use**. This notice will be removed at 1.0.0.
-:::
-
 ## Publishing the config
 
 ```console
@@ -55,7 +50,7 @@ resolving one and parsing a document proves the wiring:
 use Yarunoka\YrnkParser;
 
 $document = app(YrnkParser::class)->parse('{
-    "version": "1.0",
+    "version": "1.1",
     "timezone": "Asia/Tokyo",
     "schedules": [{"days": [25], "times": ["10:00"]}]
 }');

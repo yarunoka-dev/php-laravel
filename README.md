@@ -15,7 +15,7 @@ Yarunoka is a small JSON DSL — **Yrnk** — that states calendar rules like
 a pure engine that answers questions about them. The DSL and the engine
 live in [yarunoka/core](https://github.com/yarunoka-dev/php-core); the
 language-independent specification lives in the
-[spec repository](https://github.com/yarunoka-dev/spec/tree/1.0).
+[spec repository](https://github.com/yarunoka-dev/spec/tree/1.1).
 
 This package binds that engine into Laravel:
 
@@ -128,7 +128,7 @@ if ($routine->schedule->isDue(now(), since: $routine->last_run_at)) {
 - [yarunoka/core](https://github.com/yarunoka-dev/php-core) — the DSL and
   the engine this package wraps, with guides on reading, writing, and
   evaluating documents
-- [The spec repository](https://github.com/yarunoka-dev/spec/tree/1.0) —
+- [The spec repository](https://github.com/yarunoka-dev/spec/tree/1.1) —
   the DSL specification
 
 ## License
