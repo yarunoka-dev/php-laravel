@@ -135,8 +135,22 @@ final class ConfigEnvironment
 
     public function calendar(): YrnkCalendar
     {
-        return $this->calendar ??= new YrnkCalendarParser()->parse(
-            $this->rawCalendar(),
+        if ($this->calendar !== null) {
+            return $this->calendar;
+        }
+
+        $raw = $this->rawCalendar();
+
+        // An empty config spells "no definitions", which a document
+        // spells by omitting the calendar key — the parser is for
+        // documents and reads [] as the empty object, which the 1.1
+        // rules reject
+        if ($raw === []) {
+            return $this->calendar = new YrnkCalendar(resolverContainer: $this->resolverContainer());
+        }
+
+        return $this->calendar = new YrnkCalendarParser()->parse(
+            $raw,
             $this->timezone(),
             $this->resolverContainer(),
         );
