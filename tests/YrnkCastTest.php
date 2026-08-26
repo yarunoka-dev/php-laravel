@@ -128,6 +128,40 @@ class YrnkCastTest extends TestCase
     }
 
     #[Test]
+    public function a_spec_1_1_document_round_trips_through_the_column(): void
+    {
+        $routine = RoutineRecord::query()->create([
+            'document' => '{"version": "1.1", "timezone": "Asia/Tokyo", "schedules": [{"days": [25], "times": ["10:00"]}]}',
+        ]);
+
+        $this->assertCount(1, $this->reloadedDocument($routine)->schedules);
+
+        $stored = DB::table('routine_records')->value('document');
+
+        $this->assertIsString($stored);
+
+        $decoded = json_decode($stored, associative: true);
+
+        $this->assertIsArray($decoded);
+        $this->assertSame('1.1', $decoded['version']);
+    }
+
+    #[Test]
+    public function validity_follows_the_declared_version_through_the_column(): void
+    {
+        // "calendar": {} is a 1.0 spelling of "no definitions"; a 1.1
+        // document is stopped on it before the database
+        try {
+            RoutineRecord::query()->create([
+                'document' => '{"version": "1.1", "timezone": "Asia/Tokyo", "calendar": {}, "schedules": [{"days": [25], "times": ["10:00"]}]}',
+            ]);
+            $this->fail('No exception was thrown');
+        } catch (InvalidYrnkException) {
+            $this->assertSame(0, DB::table('routine_records')->count());
+        }
+    }
+
+    #[Test]
     public function the_same_content_differing_only_in_key_order_is_not_dirty(): void
     {
         $routine = RoutineRecord::query()->create(['document' => self::DOCUMENT_JSON]);
